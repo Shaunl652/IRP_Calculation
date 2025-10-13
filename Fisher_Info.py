@@ -29,14 +29,14 @@ import matplotlib.patheffects as PathEffects
 
 
 # These are the varibles to edit
-File_Path = r'10_Spheres' # Folder where the data is stored
-File_Name = 'S1' # Name of the data file
+File_Path = r'counter_prop' # Folder where the data is stored
+File_Name = 'H1' # Name of the data file
 Plot_title = False
 Rotation  = False # Set to true if you ant to see the roational info
 
 # Sets up the NAs to calculate the detection efficencies
-NA_L = 0.10 #0.041
-NA_R = 0.75 #0.041
+NA_L = 0.041
+NA_R = 0.041
 theta_L = np.arcsin(NA_L) # Angle covered by LEFT lens
 theta_R = np.arcsin(NA_R) # Angle covered by RIGHT lens
 
