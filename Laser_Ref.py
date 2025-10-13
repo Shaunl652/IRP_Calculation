@@ -29,7 +29,7 @@ import matplotlib.patheffects as PathEffects
 
 
 # These are the varibles to edit
-File_Path = r'single_beam' # Folder where the data is stored
+File_Path = r'counter_prop' # Folder where the data is stored
 File_Name = 'H1' # Name of the data file
 Plot_title = False
 Rotation  = True # Set to true if you ant to see the roational info
