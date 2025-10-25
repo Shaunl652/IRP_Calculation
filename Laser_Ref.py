@@ -29,7 +29,7 @@ import matplotlib.patheffects as PathEffects
 
 
 # These are the varibles to edit
-File_Path = r'counter_prop' # Folder where the data is stored
+File_Path = r'single_beam' # Folder where the data is stored
 File_Name = 'H1' # Name of the data file
 Plot_title = False
 Rotation  = True # Set to true if you ant to see the roational info
@@ -86,7 +86,7 @@ def build_H_field(data,tag):
 def dfdx(f,x):
     return (f[1]-f[0])/(x[1]-x[0])
 
-def Ref_Beam(x,y,z,w0,E0,WL):
+def Ref_Beam(x,y,z,w0,E0,WL,direction):
     """
     Produces a Gaussian beam to act as a reference
     Uses Paraxial Approx from: https://en.wikipedia.org/wiki/Gaussian_beam
@@ -105,6 +105,8 @@ def Ref_Beam(x,y,z,w0,E0,WL):
         Electric field amplitude.
     WL : FLOAT
         Laser wavelength.
+    direction : INT
+        The direction of propogation. +1 for +z and -1 for -z.
 
     Returns
     -------
@@ -117,13 +119,18 @@ def Ref_Beam(x,y,z,w0,E0,WL):
     r = np.sqrt(x**2+y**2) # Radial distance from beam centre
     zR = pi*w0**2/WL # Rayleigh Range
     Inv_Curve = z/(z**2 + zR**2) # Inverse of the radius of curvetrure
-    k = 2*pi/WL # Wave number of the laser
-    w   = lambda z: w0*np.sqrt(1+(z/zR)**2) # Beam size as a function of z position
-    phi = lambda z: np.arctan(z/zR)         # Gouy phase shift as a function of z posiiton
     
-    term1 = E0*w0/w(z)
-    term2 = np.exp(-r**2/w(z)**2)
-    term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 - phi(z)+np.pi/2) )
+    w   = w0*np.sqrt(1+(z/zR)**2) # Beam size as a function of z position
+    phi = np.arctan(z/zR)         # Gouy phase shift as a function of z posiiton
+    
+    term1 = E0*w0/w
+    term2 = np.exp(-r**2/w**2)
+    if direction < 0:
+        k = 2*pi/WL # Wave number of the laser
+        term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 + phi) )
+    else:
+        k = 2*pi/WL # Wave number of the laser
+        term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 - phi) )
     
     return term1*term2*term3
     
@@ -134,20 +141,20 @@ WL = 1.55 # Laser wavelength
 k = 2*pi/WL # wave number
 omega = k*speed_of_light
 W0 = 12 # Laser waist
-E0 = 1e-6 # incident E-field strength in V/micron
+E0 = 1 # incident E-field strength in V/micron
 
 Z0 = 376.730313668
 
 
 if Rotation:
-    axis_list = ['x','y','z','thetax','thetay','thetaz']
+    axis_list = ['z']#['x','y','z','thetax','thetay','thetaz']
     
 else:
     axis_list = ['x','y','z']
 
 # Sets up the NAs to calculate the detection efficencies
-NA_L = 0.041
-NA_R = 0.041
+NA_L = 0.041*2
+NA_R = 0.041*2
 theta_L = np.arcsin(NA_L) # Angle covered by LEFT lens
 theta_R = np.arcsin(NA_R) # Angle covered by RIGHT lens
     
@@ -272,21 +279,23 @@ def Fisher_Info(mu,angle=False):
             # E_Ref = np.array([0,0,0])
             # H_Ref = np.array([0,0,0])
             x_loc,y_loc,z_loc = coords[det_pos]
-            E_Ref = np.array([np.conj(Ref_Beam(x_loc,y_loc,-z_loc,W0,E0,WL)),
+            E_Ref = np.array([np.conj(Ref_Beam(x_loc,y_loc,z_loc,W0,E0,WL,-1)),
                               0,
                               0])
             
             H_Ref = np.array([0,
-                              Ref_Beam(x_loc,y_loc,-z_loc,W0,E0,WL)/Z0,
+                              Ref_Beam(x_loc,y_loc,z_loc,W0,-E0,WL,-1)/Z0,
                               0])
         else:
+            # E_Ref = np.array([0,0,0])
+            # H_Ref = np.array([0,0,0])
             x_loc,y_loc,z_loc = coords[det_pos]
-            E_Ref = np.array([np.conj(Ref_Beam(x_loc,y_loc,z_loc,W0,E0,WL)),
+            E_Ref = np.array([np.conj(Ref_Beam(x_loc,y_loc,z_loc,W0,E0,WL,+1)),
                               0,
                               0])
             
             H_Ref = np.array([0,
-                              Ref_Beam(x_loc,y_loc,z_loc,W0,E0,WL)/Z0,
+                              Ref_Beam(x_loc,y_loc,z_loc,W0,E0,WL,+1)/Z0,
                               0])
             
         S_ref = np.cross(E_Ref,H_Ref)
@@ -335,7 +344,7 @@ def Fisher_Info(mu,angle=False):
     return np.array(S_FI_temp)
 
 
-plot_path = f'Plots/Laser_Ref/{File_Path}/{File_Name}_Alt'
+plot_path = f'Plots/Laser_Ref/{File_Path}/{File_Name}'
 Path(plot_path).mkdir(parents=True, exist_ok=True) 
 
 figs = {}
@@ -417,7 +426,7 @@ for i,motionaxis in enumerate(axis_list):
     zmin = (mid_z - max_range)*Lim_Mod[motionaxis]
     zmax = (mid_z + max_range)*Lim_Mod[motionaxis]
     
-    ax.set_xlim(xmin-0.15, xmax-0.15)
+    ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
     ax.set_zlim(zmin, zmax)
     ax.set_axis_off()

@@ -29,10 +29,10 @@ import matplotlib.patheffects as PathEffects
 
 
 # These are the varibles to edit
-File_Path = r'counter_prop' # Folder where the data is stored
+File_Path = r'single_beam' # Folder where the data is stored
 File_Name = 'H1' # Name of the data file
-Plot_title = False
-Rotation  = False # Set to true if you ant to see the roational info
+Plot_title = True
+Rotation  = True # Set to true if you ant to see the roational info
 
 # Sets up the NAs to calculate the detection efficencies
 NA_L = 0.041
@@ -100,7 +100,7 @@ omega = k*speed_of_light # angluar freeq of laser
 
 # Depends if we want to consider rotational DoFs
 if Rotation:
-    axis_list = ['z']# ['x','y','z','thetax','thetay','thetaz']
+    axis_list = ['thetax','thetaz']#['x','y','z','thetax','thetay','thetaz']
     
 else:
     axis_list = ['x','y','z']
@@ -147,7 +147,7 @@ dTHETA = np.gradient(THETA,axis=1)
 
 dPHI = np.gradient(PHI,axis=0)
 #Unit_Vec = np.array([np.cos(PHI)*np.sin(THETA),np.sin(PHI)*np.sin(THETA),np.cos(THETA)])
-domega = (-np.gradient(np.cos(THETA),axis=1)*dPHI).flatten()    #np.sin(THETA)*dTHETA*dPHI # Builds the sin(theta part for the integrations over all the spehre)
+area_i = (-np.gradient(np.cos(THETA),axis=1)*dPHI).flatten()    #np.sin(THETA)*dTHETA*dPHI # Builds the sin(theta part for the integrations over all the spehre)
 
 # Start on detection efficeny stuff
 # This block of code finds the number of array elements to cover the lens NA
@@ -244,7 +244,7 @@ def Fisher_Info(mu,angle=False):
         # makes the fisher info at each detector
         S_FI_vec = 2*np.real(np.cross(dEdx,dHdx))/(hbar*omega)
         Unit_Vec = coords[det_pos]
-        S_FI_temp.append(S_FI_vec@Unit_Vec*domega[det_pos])
+        S_FI_temp.append(S_FI_vec@Unit_Vec*area_i[det_pos])
         
     return np.array(S_FI_temp)
 
@@ -256,11 +256,11 @@ figs = {}
 plt.rcParams['mathtext.fontset']="cm"
 titles  = {'x':"$x$",'y':"$y$",'z':"$z$",'thetax':"$\\theta_x$",'thetay':"$\\theta_y$",'thetaz':"$\\theta_z$"}
 if File_Name == 'H3' or "R1":
-    theta_z_zoom = 0.75
+    theta_z_zoom = 0.5
 else:
-    theta_z_zoom = 0.45
+    theta_z_zoom = 0.1
 # Lim_Mod = {'x':0.7,  'y':0.8,  'z':0.7,  'thetax':0.85,          'thetay':0.75,          'thetaz':theta_z_zoom}
-Lim_Mod = {'x':0.8,  'y':0.8,  'z':0.8,  'thetax':0.85,          'thetay':0.75,          'thetaz':theta_z_zoom}
+Lim_Mod = {'x':0.75,  'y':0.85,  'z':0.75,  'thetax':0.85,          'thetay':0.7,          'thetaz':theta_z_zoom}
 for i,motionaxis in enumerate(axis_list):
     print(f'Working on motion in the {motionaxis} axis')
 
@@ -329,7 +329,9 @@ for i,motionaxis in enumerate(axis_list):
     zmin = (mid_z - max_range)*Lim_Mod[motionaxis]
     zmax = (mid_z + max_range)*Lim_Mod[motionaxis]
     
-    ax.set_xlim(xmin-0, xmax-0)
+    x_shift = xmax/3.5
+    
+    ax.set_xlim(xmin-x_shift, xmax-x_shift)
     ax.set_ylim(ymin, ymax)
     ax.set_zlim(zmin, zmax)
     ax.set_axis_off()
@@ -342,26 +344,26 @@ for i,motionaxis in enumerate(axis_list):
     
     
     txt_size = 35
-    if eta_L > 1/9:
-        txt = ax.text2D(0.2,0.2,s=f'{eta_L:.2f}',size=txt_size,color="b",horizontalalignment='center',transform=ax.transAxes)
+    if round(eta_L,2) >= round(1/9,2):
+        txt = ax.text2D(-0.1,0.2,s=f'{eta_L:.2f}',size=txt_size,color="b",horizontalalignment='left',transform=ax.transAxes)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     elif eta_L >= 0.01:
-        txt = ax.text2D(0.2,0.2,s=f'{eta_L:.2f}',size=txt_size,color="k",horizontalalignment='center',transform=ax.transAxes)
+        txt = ax.text2D(-0.1,0.2,s=f'{eta_L:.2f}',size=txt_size,color="k",horizontalalignment='left',transform=ax.transAxes)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     else:
-        txt = ax.text2D(0.2,0.2,s=f'{eta_L:.1e}',size=txt_size,color="k",horizontalalignment='center',transform=ax.transAxes)
+        txt = ax.text2D(-0.1,0.2,s=f'{eta_L:.1e}',size=txt_size,color="k",horizontalalignment='left',transform=ax.transAxes)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     
     
     
-    if eta_R > 1/9:
-        txt = ax.text2D(0.8,0.2,s=f'{eta_R:.2f}',size=txt_size,color="b",horizontalalignment='center',transform=ax.transAxes)
+    if round(eta_R,2) >= round(1/9,2):
+        txt = ax.text2D(1.1,0.2,s=f'{eta_R:.2f}',size=txt_size,color="b",horizontalalignment='right',transform=ax.transAxes)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     elif eta_R >= 0.01:
-        txt = ax.text2D(0.8,0.2,s=f'{eta_R:.2f}',size=txt_size,color="k",horizontalalignment='center',transform=ax.transAxes)
+        txt = ax.text2D(1.1,0.2,s=f'{eta_R:.2f}',size=txt_size,color="k",horizontalalignment='right',transform=ax.transAxes)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     else:
-        txt = ax.text2D(0.8,0.2,s=f'{eta_R:.1e}',size=txt_size,color="k",horizontalalignment='center',transform=ax.transAxes)
+        txt = ax.text2D(1.1,0.2,s=f'{eta_R:.1e}',size=txt_size,color="k",horizontalalignment='right',transform=ax.transAxes)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     
     
