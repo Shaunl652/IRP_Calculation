@@ -126,8 +126,8 @@ def Ref_Beam(x,y,z,w0,E0,WL,direction):
     term1 = E0*w0/w
     term2 = np.exp(-r**2/w**2)
     if direction < 0:
-        k = 2*pi/WL # Wave number of the laser
-        term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 + phi) )
+        k = -2*pi/WL # Wave number of the laser
+        term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 + phi-np.pi/4) )
     else:
         k = 2*pi/WL # Wave number of the laser
         term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 - phi) )
@@ -141,7 +141,7 @@ WL = 1.55 # Laser wavelength
 k = 2*pi/WL # wave number
 omega = k*speed_of_light
 W0 = 12 # Laser waist
-E0 = 1 # incident E-field strength in V/micron
+E0 = 1e5 # incident E-field strength in V/micron
 
 Z0 = 376.730313668
 
@@ -197,7 +197,7 @@ phis = 2*np.pi*u
 # Mesh grid these things to get 2D polts of the angles
 THETA, PHI = np.meshgrid(theta, phis)
 # Find how x,y, and z vary across the unit sphere
-X,Y,Z = points(1,THETA,PHI)
+X,Y,Z = points(1e6,THETA,PHI)
 dTHETA = np.gradient(THETA,axis=1)
 
 dPHI = np.gradient(PHI,axis=0)
