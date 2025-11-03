@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from pathlib import Path
 import matplotlib.patheffects as PathEffects
+import json
 
 
 # These are the varibles to edit
@@ -35,8 +36,8 @@ Plot_title = True
 Rotation  = True # Set to true if you ant to see the roational info
 
 # Sets up the NAs to calculate the detection efficencies
-NA_L = 0.041
-NA_R = 0.041
+NA_L = 0.041*2
+NA_R = 0.041*2
 theta_L = np.arcsin(NA_L) # Angle covered by LEFT lens
 theta_R = np.arcsin(NA_R) # Angle covered by RIGHT lens
 
@@ -100,7 +101,7 @@ omega = k*speed_of_light # angluar freeq of laser
 
 # Depends if we want to consider rotational DoFs
 if Rotation:
-    axis_list = ['thetax','thetaz']#['x','y','z','thetax','thetay','thetaz']
+    axis_list = ['x','y','z','thetax','thetay','thetaz']
     
 else:
     axis_list = ['x','y','z']
@@ -252,6 +253,8 @@ plot_path = f'Plots/Fisher_Info/{File_Path}/{File_Name}'
 Path(plot_path).mkdir(parents=True, exist_ok=True) 
 
 figs = {}
+Norms = {} # A dict to store the value of the normalisation constant for each option to be used in the reference field version
+
 #fig,axes = plt.subplots(figsize=(5,15),nrows=len(axis_list),subplot_kw={'projection':'3d'})
 plt.rcParams['mathtext.fontset']="cm"
 titles  = {'x':"$x$",'y':"$y$",'z':"$z$",'thetax':"$\\theta_x$",'thetay':"$\\theta_y$",'thetaz':"$\\theta_z$"}
@@ -271,10 +274,12 @@ for i,motionaxis in enumerate(axis_list):
     # Remeshes the spectral density from a list of locations to a 2D grid at the locations in X,Y,Z
     S_FI_grid = griddata(coords, np.array(S_FI), (X,Y,Z), method='nearest')
     
-
+    N_const = np.trapz(np.trapz(S_FI_grid,axis=1))
+    
+    Norms[motionaxis] = N_const
     
     # Finds the information radiated to each angle (See the start of Sec II C)
-    I = S_FI_grid/np.trapz(np.trapz(S_FI_grid,axis=1)) #
+    I = S_FI_grid/N_const #
     
     print('\nFound Info Plot')
 
@@ -375,7 +380,8 @@ for i,motionaxis in enumerate(axis_list):
     figs[motionaxis] = fig
     #plt.close()
 
-
+with open("Norms.json","w") as f:
+    json.dump(Norms, f)
 
 
 
