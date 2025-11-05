@@ -129,7 +129,7 @@ ys = [float(yi) for yi in y]
 zs = [float(zi) for zi in z]
 
 # Sets up an array containing the measurment locations
-coords = np.array([xs,ys,zs]).T/1e6
+coords = np.array([xs,ys,zs]).T#/1e6
 
 # Set up the spherical polars
 # These first few lines are just picking equal spacing on a unit sphere (see: https://mathworld.wolfram.com/SpherePointPicking.html)
@@ -142,7 +142,7 @@ phis = 2*np.pi*u
 # Mesh grid these things to get 2D polts of the angles
 THETA, PHI = np.meshgrid(theta, phis)
 # Find how x,y, and z vary across the unit sphere
-X,Y,Z = points(1,THETA,PHI)
+X,Y,Z = points(1e6,THETA,PHI)
 
 dTHETA = np.gradient(THETA,axis=1)
 
@@ -244,7 +244,7 @@ def Fisher_Info(mu,angle=False):
 
         # makes the fisher info at each detector
         S_FI_vec = 2*np.real(np.cross(dEdx,dHdx))/(hbar*omega)
-        Unit_Vec = coords[det_pos]
+        Unit_Vec = coords[det_pos]/1e6
         S_FI_temp.append(S_FI_vec@Unit_Vec*area_i[det_pos])
         
     return np.array(S_FI_temp)
