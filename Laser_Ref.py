@@ -127,7 +127,7 @@ def Ref_Beam(x,y,z,w0,E0,WL,direction):
     term2 = np.exp(-r**2/w**2)
     if direction < 0:
         k = -2*pi/WL # Wave number of the laser
-        term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 + phi-np.pi/4) )
+        term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 + phi) )
     else:
         k = 2*pi/WL # Wave number of the laser
         term3 = np.exp(-1j* (k*z + Inv_Curve*k*r**2/2 - phi) )
@@ -138,7 +138,7 @@ def Ref_Beam(x,y,z,w0,E0,WL,direction):
 
 # Keep all of these in microns for now
 WL = 1.55 # Laser wavelength
-k = 2*pi/WL # wave number
+k = 2*pi/(WL*1e-6) # wave number
 omega = k*speed_of_light
 W0 = 12 # Laser waist
 E0 = 1e5 # incident E-field strength in V/micron
@@ -147,7 +147,7 @@ Z0 = 376.730313668
 
 
 if Rotation:
-    axis_list = ['z']#['x','y','z','thetax','thetay','thetaz']
+    axis_list = ['x','y','z','thetax','thetay','thetaz']
     
 else:
     axis_list = ['x','y','z']
@@ -347,6 +347,9 @@ def Fisher_Info(mu,angle=False):
 plot_path = f'Plots/Laser_Ref/{File_Path}/{File_Name}'
 Path(plot_path).mkdir(parents=True, exist_ok=True) 
 
+import json
+with open("Norms.json","r") as f:
+    Norms = json.load(f)
 figs = {}
 #fig,axes = plt.subplots(figsize=(5,15),nrows=len(axis_list),subplot_kw={'projection':'3d'})
 plt.rcParams['mathtext.fontset']="cm"
@@ -371,7 +374,7 @@ for i,motionaxis in enumerate(axis_list):
     
     # Finds the information radiated to each angle (See the start of Sec II C)
     # Finds the information radiated to each angle (See the start of Sec II C)
-    I = S_FI_grid/np.trapz(np.trapz(S_FI_grid,axis=1)) #
+    I = S_FI_grid/Norms[motionaxis] #np.trapz(np.trapz(S_FI_grid,axis=1)) #
     
     print('\nFound Info Plot')
 
