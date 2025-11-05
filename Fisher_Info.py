@@ -129,7 +129,7 @@ ys = [float(yi) for yi in y]
 zs = [float(zi) for zi in z]
 
 # Sets up an array containing the measurment locations
-coords = np.array([xs,ys,zs]).T#/1e6
+coords = np.array([xs,ys,zs]).T/1e6
 
 # Set up the spherical polars
 # These first few lines are just picking equal spacing on a unit sphere (see: https://mathworld.wolfram.com/SpherePointPicking.html)
@@ -244,7 +244,7 @@ def Fisher_Info(mu,angle=False):
 
         # makes the fisher info at each detector
         S_FI_vec = 2*np.real(np.cross(dEdx,dHdx))/(hbar*omega)
-        Unit_Vec = coords[det_pos]/1e6
+        Unit_Vec = coords[det_pos]#/1e6
         S_FI_temp.append(S_FI_vec@Unit_Vec*area_i[det_pos])
         
     return np.array(S_FI_temp)
@@ -308,7 +308,7 @@ for i,motionaxis in enumerate(axis_list):
     
     fig,ax = plt.subplots(subplot_kw={'projection':'3d'})
     
-    ax.plot_surface(Xi,Yi,Zi,facecolors=plt.cm.jet(d_norm),shade=False)
+    ax.plot_surface(Xi,Yi,Zi,facecolors=plt.cm.jet(d_norm),shade=False,rstride=1,cstride=1)
     ax.set(xlabel='x',ylabel='y',zlabel='z')
     m = cm.ScalarMappable(cmap=cm.jet)
     m.set_array(d)
